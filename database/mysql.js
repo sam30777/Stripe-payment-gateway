@@ -1,7 +1,8 @@
 
-const mysql = require('mysql');
+const mysql     = require('mysql');
 
-
+const responses = require('./../common/responses');
+const constant  = require('./../common/constant');
 
 const  initializeConnectionPool = async function() {
     try {
@@ -9,8 +10,9 @@ const  initializeConnectionPool = async function() {
         var conn = mysql.createPool({
           host                : 'localhost',
           user                : 'root',
-          password            : '',
+          password            : 'qwerty123',
           database            : 'payment_system',
+          port                : '3306' ,
           multipleStatements  : true
         });
     
@@ -22,6 +24,19 @@ const  initializeConnectionPool = async function() {
     }   
   }
 
+  const executeQueryPromisified   = async function (query,params){
+      return new Promise((resolve,reject)=>{
+            connection.query(query,params,(error,result)=>{
+                    if(error) {
+                        return reject(error);
+                    }
+
+                    return resolve(result);
+            })
+      })
+  }
+
   module.exports = {
-      initializeConnectionPool 
+      initializeConnectionPool  ,
+      executeQueryPromisified
   }

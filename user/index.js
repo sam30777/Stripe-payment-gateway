@@ -1,22 +1,34 @@
 
 const userValidator = require('./validator');
 const user          = require('./user');
-const responses     = require('./../common/responses')
+const responses     = require('./../common/responses');
+const constant      = require('./../common/constant');
+
 app.post('/user/register',userValidator.registerUser,async (req,res)=>{
     try {  
-        console.log("req==>",req.body);
         let payloadData = req.body ;
-        let registeredUser = await  user.registerUser(payloadData);
+        let data = await  user.registerUser(payloadData);
         
-        log('Registered user ==>',registeredUser);
-
-        responses.sendSuccess(res,registeredUser);
+        res.send(JSON.stringify(data));
 
     } catch (error) {
-        log.error('Error occured while register',error);
-        responses.sendError(res);
+        console.log('error while register->',error);
+         res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
     }
 })
+
+app.post('/user/login',userValidator.login, async (req,res,)=>{
+    try {
+        let payload = req.body ;
+
+        let data = await user.login(payload) ;
+
+    } catch(error) {
+        console.log('error while register->',error);
+        res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
+    }
+})
+
 
 
 

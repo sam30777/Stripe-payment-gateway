@@ -1,10 +1,19 @@
-function sendSuccess(res,data){
+function sendSuccess(res,message,data){
     var response = {
-        message:  "Success" ,
+        message:  message ,
         status : 200 ,
         data   : data ? data : {}
       };
       return res.send(JSON.stringify(response)); 
+}
+
+function getResponseWithMessage(message,code,data){
+    var response = {
+        message : message ,
+        status  : code ,
+        data    : data
+    }
+    return response ;
 }
 
 function sendError(res,message,code) {
@@ -18,5 +27,6 @@ function sendError(res,message,code) {
 
 module.exports = {
     sendSuccess ,
-    sendError
+    sendError ,
+    getResponseWithMessage
 }
