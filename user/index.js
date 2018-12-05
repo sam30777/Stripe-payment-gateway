@@ -23,11 +23,16 @@ app.post('/user/login',userValidator.login, async (req,res,)=>{
 
         let data = await user.login(payload) ;
 
+        res.send(JSON.stringify(data));
+
     } catch(error) {
         console.log('error while register->',error);
         res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
     }
 })
+
+
+
 
 
 

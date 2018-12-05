@@ -8,6 +8,8 @@ const constant  = require('./../common/constant');
 
 const registerUser = function (req,res,next){
 
+    console.log("user name==>",req.body);
+
     const schema = Joi.object().keys({
         user_name: Joi.string().alphanum().min(4).max(30).required(),
         password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),

@@ -10,7 +10,7 @@ const  initializeConnectionPool = async function() {
         var conn = mysql.createPool({
           host                : 'localhost',
           user                : 'root',
-          password            : 'qwerty123',
+          password            : 'clickpass',
           database            : 'payment_system',
           port                : '3306' ,
           multipleStatements  : true
