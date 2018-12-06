@@ -142,8 +142,15 @@ const deleteCard = async function(payload){
 
 const addAccount = async function(author_id,payload){
     try {
-    
-    let firstName                    = payload.first_name;
+
+        let sql = 'SELECT * FROM authors WHERE author_id = ?' ;
+        let params = [author_id] ;
+        
+        let existingUser = await mysql.executeQueryPromisified(sql,params);
+        console.log('existing user->',existingUser);
+        if(existingUser && existingUser.length > 0) {
+            console.log('payload dtaa->',payload);
+     let firstName                    = payload.first_name;
     let lastName                     = payload.last_name;
     let dobDay                       = payload.dob_day;
     let dobMonth                     = payload.dob_month;
@@ -161,13 +168,13 @@ const addAccount = async function(author_id,payload){
 
      stripeAccount = {
         object          : constant.stripeObject,
-        country         : 'India',
+        country         : 'US',
         currency        : bankAccountCurrency,
         account_number  : bankAccountNumber
       };
 
       if(routingNumber){
-          stripe.routingNumber = routingNumber ;
+        stripeAccount.routing_number = routingNumber ;
       }
 
       let legalEntity = {
@@ -192,11 +199,12 @@ const addAccount = async function(author_id,payload){
       }
 
       let finalStripeObject = {
-        type            : 'custom',
-        tos_acceptance  : {
-          date          : Math.floor(Date.now() / 1000),
-          ip            : '133.23.58.47'
-        },
+        type            : 'standard' ,
+        email           : existingUser[0].email ,
+        // tos_acceptance  : {
+        //   date          : Math.floor(Date.now() / 1000),
+        //   ip            : '133.23.58.47'
+        // },
         metadata : {
           author_id   : author_id
         },
@@ -217,6 +225,12 @@ const addAccount = async function(author_id,payload){
         return responses.getResponseWithMessage(constant.errorMessage.unable_to_add_account,constant.codes.unable_to_add_account)
      }
      
+        } else {
+            return responses.getResponseWithMessage(constant.errorMessage.author_doesnot_exists,constant.codes.author_doesnot_exists)
+        }
+
+    
+    
     
     } catch(error){
         throw error ;
