@@ -9,8 +9,13 @@ const getAccessToken = function (data){
 
 const verifyAccessToken = function (req,res,next){
 
-    let access_token = req.get('Authorization') ;
-
+    let access_token ; 
+    if(req.body.access_token){
+        access_token = req.body.access_token ;
+    } else {
+        access_token = req.get('Authorization') ;
+    }
+     
     console.log('access token is this-->',access_token)
     let verifiedAccessToken = jwt.verify(access_token,constant.jwtPrivateKey);
 
@@ -21,7 +26,28 @@ const verifyAccessToken = function (req,res,next){
     next()
     
 }
+
+
+const verfiyAuthorAccessToken = function (req,res,next){
+
+    let access_token ; 
+    if(req.body.access_token){
+        access_token = req.body.access_token ;
+    } else {
+        access_token = req.get('Authorization') ;
+    }
+    console.log('access token is this-->',access_token)
+    let verifiedAccessToken = jwt.verify(access_token,constant.jwtPrivateKey);
+    console.log('verfied token->',verifiedAccessToken);
+    if(verifiedAccessToken.data.role != constant.roles.author) {
+        responses.sendError(res,constant.errorMessage.not_autherised,constant.codes.not_autherised);
+    }
+    req.author_id =  verifiedAccessToken.data.author_id  ;
+    next()
+    
+}
 module.exports = {
     getAccessToken ,
-    verifyAccessToken
+    verifyAccessToken ,
+    verfiyAuthorAccessToken
 }

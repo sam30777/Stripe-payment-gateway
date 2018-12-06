@@ -30,11 +30,11 @@ const registerUser = async function (payload){
             let params = [user_name,email,password,date_of_birth] ;
 
             let insertedUser = await mysql.executeQueryPromisified(sql,params);
-            if(insertedUser && insertedUser.length > 0) {
+            if(insertedUser && insertedUser.insertId ) {
                 console.log('scuess message',successMessage);
                 return responses.getResponseWithMessage(constant.successMessages.user_registered_successfully,constant.codes.user_already_exists);
             } else {
-                return responses.getResponseWithMessage(constant.successMessages.user_registered_successfully,constant.codes.user_registered_successfully);
+                return responses.getResponseWithMessage(constant.errorMessage.user_registered_successfully,constant.codes.user_registered_successfully);
             }
 
         } catch(error){

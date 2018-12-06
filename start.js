@@ -3,7 +3,7 @@ const mySqlService = require('./database/mysql');
 
 const  initializeDatabaseAndServer = async function() {
       try {
-        var port =  process.env.port || 3000 ;
+        var port =  process.env.port || 3001 ;
         global.connection   = await mySqlService.initializeConnectionPool();
         await startServer(port);
         return ;
@@ -16,7 +16,7 @@ const  initializeDatabaseAndServer = async function() {
 
   const startServer = function(port) {
       return new Promise((resolve,reject)=>{
-        app.listen(3000,(error,result)=>{
+        app.listen(port,(error,result)=>{
             if(error){
                 console.log('Error while starting server',error);
                 return reject(error);
