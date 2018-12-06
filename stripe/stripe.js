@@ -244,25 +244,15 @@ const buyBook = async function(user_id,payload){
         let cardDetails = await mysql.executeQueryPromisified(sql,params);
 
         if(cardDetails && cardDetails.length > 0) {
-
             let book_id = payload.book_id ;
             let quantity = payload.quantity ;
-            let transaction = await makeTransaction(cardDetails,book_id,quantity);
-            // sql = 'SELECT books.* , author_stripe_details.* FROM books INNER JOIN author_stripe_details ON books.author_id = author_stripe_details.author_id WHERE book_id = book_id' ;
-            // sql = 'SELECT * FROM books WHERE book_id = ?'
-            // params[book_id];
+            let promo_percent ; 
+            if(payload.promo_percent ){
+                promo_percent = payload.promo_percent ;
+            }
 
-            // let bookDetails = await mysql.executeQueryPromisified(sql,params);
-
-            // if(bookDetails && bookDetails.length > 0){
-            //     sql  = 'SELECT * from author_stripe_details WHERE auhor_id = ?' ;
-            //     params[bookDetails[0].author_id];
-
-            //     let authorDetails = await mysql.executeQueryPromisified(sql,params);
-            //    
-            // } else {
-            //     return responses.getResponseWithMessage(constant.errorMessage.no_book_found,constant.codes.not_found)
-            // }
+            let transaction = await makeTransaction(cardDetails[0],book_id,quantity,promo_percent);
+        
         } else {
             return responses.getResponseWithMessage(constant.errorMessage.no_card_found,constant.codes.not_found)
         }
@@ -272,10 +262,11 @@ const buyBook = async function(user_id,payload){
 }
 
 
-function makeTransaction(cardDetails , book_id ,quantity) {
+function makeTransaction(cardDetails , book_id ,quantity,promo_percent) {
     return new Promise((resolve,reject)=>{
         let sql ;
         let params ;
+
         connection.beginTransaction(function(err) {
             if (err) { throw err; }
 
@@ -284,6 +275,7 @@ function makeTransaction(cardDetails , book_id ,quantity) {
 
             connection.query(sql,params,(err,bookDetails)=>{
                 if(err){
+
                     return connection.rollback(function() {
                         throw err;
                       });
@@ -291,67 +283,115 @@ function makeTransaction(cardDetails , book_id ,quantity) {
 
                 let book = bookDetails[0];
 
-                
-
-
-
-
-
                 if(book.no_in_stock < quantity) {
                     return connection.rollback(function() {
                         throw responses.getResponseWithMessage(constant.errorMessage.out_of_stock,constant.codes.out_of_stock);
                       });
                 }
-                let amount = quantity * book.book_price ;
-                let auhtorPriceForEackBook = book.author_percentage / 100 * book.book_price ;
-                auhtorPriceForEackBook = Math.round(auhtorPriceForEackBook,2);
-                let auhtorPriceOverall = auhtorPriceForEackBook * quantity ;
-                if(auhtorPriceOverall  < amount) {
-                    auhtorPriceOverall = auhtorPriceOverall * 100 ;
-                    amount = amount * 100 ;
-                    stripe.charges.create({
-                        amount: amount,
-                        currency: "usd",
-                        source: "tok_amex", // obtained with Stripe.js
-                        description: "Charge for jenny.rosen@example.com"
-                      }, function(err, charge) {
-                        // asynchronously called
-                      });
-        
-        
-                }
+               
+                sql = 'SELECT stripe_account , currency FROM author_stripe_details WHERE author_id = ?' ;
+                params = [book.author_id] ;
 
+                connection.query(sql,params,(error,authorAccountDetails)=>{
+                    if(error) {
+                        return connection.rollback(function() {
+                            return reject(error) 
+                          });
+                    }
+                    let amount = quantity * book.book_price ;
+
+                    let promo_amount = 0 ; 
+                    
+                    if(promo_percent){
+                        promo_amount =  (promo_percent / 100) * amount ;
+                    }
+                    
+                    let auhtorPriceForEackBook = (book.author_percentage / 100) * book.book_price ;
+                    auhtorPriceForEackBook = Math.round(auhtorPriceForEackBook,2);
+                    let auhtorPriceOverall = auhtorPriceForEackBook * quantity ;
+                    let adminAmount = amount - auhtorPriceOverall ;
+                    adminAmount = adminAmount - promo_amount ;
+                    let totalAmount = adminAmount + auhtorPriceOverall ;
+
+
+                    if(auhtorPriceOverall  < totalAmount) {
+                        auhtorPriceOverall = auhtorPriceOverall * 100 ;
+                        amount = amount * 100 ;
+                        stripe.charges.create({
+                            amount     :   amount,
+                            currency   :   authorAccountDetails[0].currency  ,
+                            source     :   cardDetails.card_stripe_id , // obtained with Stripe.js
+                            destination = {
+                                amount : Math.round(auhtorPriceOverall),
+                                account : authorAccountDetails[0].stripe_account 
+                                }  
+                          }, function(err, charge) {
+                            if(err){
+                                return connection.rollback(function() {
+                                    return reject(err);
+                                  });
+                            }
+                            if(charge) {
+                                sql = 'UPDATE books no_in_stock WHERE book_id = ?' ;
+                                params = [book_id];
+
+                                connection.query(sql,params,(error,updated)=>{
+                                    if(error) {
+                                        return connection.rollback(function() {
+                                             return reject(error);
+                                          });
+                                    }
+                                    if(!updated.affectedRows){
+                                        return connection.rollback(function() {
+                                            return reject(responses.getResponseWithMessage(constant.errorMessage.payment_failed,constant.codes.payment_failed));
+                                          });
+                                    }
+                                    return resolve(responses.getResponseWithMessage(constant.successMessages.booking_successfull,constant.codes.success));
+                                })
+                            }
+                          });
+        
+                    } else {
+                        let newAmmount = auhtorPriceOverall - totalAmount ;
+                        let newAuthorAmount = 
+                        stripe.charges.create({
+                            amount     :   newAmmount,
+                            currency   :   authorAccountDetails[0].currency  ,
+                            source     :   cardDetails.card_stripe_id , // obtained with Stripe.js
+                            destination = {
+                                amount : Math.round(auhtorPriceOverall),
+                                account : authorAccountDetails[0].stripe_account 
+                                } 
+                          }, function(err, charge) {
+                            if(err){
+                                return connection.rollback(function() {
+                                    return reject(err);
+                                  });
+                            }
+                            if(charge) {
+                                sql = 'UPDATE books no_in_stock WHERE book_id = ?' ;
+                                params = [book_id];
+
+                                connection.query(sql,params,(error,updated)=>{
+                                    if(error) {
+                                        return connection.rollback(function() {
+                                             return reject(error);
+                                          });
+                                    }
+                                    if(!updated.affectedRows){
+                                        return connection.rollback(function() {
+                                            return reject(responses.getResponseWithMessage(constant.errorMessage.payment_failed,constant.codes.payment_failed));
+                                          });
+                                    }
+                                    return resolve(responses.getResponseWithMessage(constant.successMessages.booking_successfull,constant.codes.success));
+                                })
+                            }
+                          });
+
+                    }
+                })
             
             })
-
-
-            
-
-            connection.query('INSERT INTO posts SET title=?', title, function (error, results, fields) {
-              if (error) {
-                return connection.rollback(function() {
-                  throw error;
-                });
-              }
-           
-              var log = 'Post ' + results.insertId + ' added';
-           
-              connection.query('INSERT INTO log SET data=?', log, function (error, results, fields) {
-                if (error) {
-                  return connection.rollback(function() {
-                    throw error;
-                  });
-                }
-                connection.commit(function(err) {
-                  if (err) {
-                    return connection.rollback(function() {
-                      throw err;
-                    });
-                  }
-                  console.log('success!');
-                });
-              });
-            });
           });
     })
 }
@@ -449,6 +489,7 @@ module.exports = {
     addCardAndCustomer ,
     editCardDetails ,
     deleteCard ,
-    addAccount
+    addAccount ,
+    buyBook
 }
 

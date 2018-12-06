@@ -66,7 +66,8 @@ const buyBook = function(req,res,next){
     const schema = Joi.object().keys({
         card_id: Joi.number().required() ,
         book_id : Joi.number().required() ,
-        quantity : Joi.number().required()
+        quantity : Joi.number().required() ,
+        promo_percent    : Joi.number().optional().max(100)
 
     })
 
