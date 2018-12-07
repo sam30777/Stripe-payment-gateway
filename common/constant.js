@@ -26,7 +26,8 @@ const errorMessage = {
      'no_card_found'          : 'No card found' ,
      'no_book_found'           : 'No book found' ,
      'out_of_stock'           : 'Books are out of stock' ,
-     'payment_failed'         : 'Payment was failed'
+     'payment_failed'         : 'Payment was failed' ,
+     'transaction_failed'     : 'Transaction failed'
      
   
 }
@@ -74,7 +75,8 @@ const codes = {
     'failed_to_add_books'   : 400 ,
     'unable_to_add_account' : 400 ,
     'out_of_stock'          : 400 ,
-    'payment_failed'        : 400
+    'payment_failed'        : 400 ,
+    'transaction_failed'    : 400
     
     
 }

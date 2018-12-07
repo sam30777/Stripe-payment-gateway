@@ -31,7 +31,7 @@ const registerUser = async function (payload){
 
             let insertedUser = await mysql.executeQueryPromisified(sql,params);
             if(insertedUser && insertedUser.insertId ) {
-                console.log('scuess message',successMessage);
+             
                 return responses.getResponseWithMessage(constant.successMessages.user_registered_successfully,constant.codes.user_already_exists);
             } else {
                 return responses.getResponseWithMessage(constant.errorMessage.user_registered_successfully,constant.codes.user_registered_successfully);
@@ -54,6 +54,7 @@ const login = async function(payload){
             return responses.getResponseWithMessage(constant.errorMessage.user_does_not_exits,constant.codes.user_does_not_exits);
         }
 
+
         let password = encryptDecrypt.encryptPassword(payload.password) ;
         if(password != existingUser.password) {
             return responses.getResponseWithMessage(constant.errorMessage.password_is_incorrect,constant.codes.password_is_incorrect);
@@ -65,7 +66,6 @@ const login = async function(payload){
         } 
 
         console.log("auth obj->",authObject);
-
         let access_token =  await token.getAccessToken(authObject);
         console.log('access_token->',access_token);
 

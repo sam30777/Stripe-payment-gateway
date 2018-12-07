@@ -68,7 +68,7 @@ function stripeTokenHandler(token) {
   let secondInput = document.createElement('input');
   secondInput.setAttribute('type', 'hidden');
   secondInput.setAttribute('name', 'access_token');
-  secondInput.setAttribute('value', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InJvbGUiOiJ1c2VyIiwidXNlcl9pZCI6Mn0sImlhdCI6MTU0Mzk0NjIzNX0.BJApUSqtY7HKq3cYEcKuVF-c4d9ZU7V2EqCsbEIBHVA');
+  secondInput.setAttribute('value', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InJvbGUiOiJ1c2VyIiwidXNlcl9pZCI6Nn0sImlhdCI6MTU0NDExNjQ3OX0.DGqDUSdNtClhiqxieW_Ch0vEecFts5mHPG6MAcLIRcs');
   form.appendChild(secondInput);
 
   // Submit the form

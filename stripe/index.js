@@ -68,7 +68,8 @@ app.post('/user/buyBook',stripeValidator.buyBook , token.verifyAccessToken , asy
     try {
         let payload = req.body ;
         let user_id = req.user_id ;
-        let data    = await stripe.addAccount(author_id,payload);
+        let data    = await stripe.buyBook(user_id,payload);
+        console.log('out side->',data)
         res.send(JSON.stringify(data));
 
     } catch(error){
