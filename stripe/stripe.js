@@ -355,7 +355,7 @@ async function makeTransaction(user_id ,cardDetails , book_id ,quantity,promo_pe
                         try {
                             let transferedPayment = await createTransferStripe(newAuthorAmount,authorAccountDetails[0].stripe_account,authorAccountDetails[0].currency);
                             if(transferedPayment) {
-
+                                
                             } else {
                                 await insertPendingAmounts(authorAccountDetails[0].stripe_account,author_stripe_account,amount,order.insertId,);
                             }
