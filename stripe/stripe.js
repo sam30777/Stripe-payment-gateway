@@ -255,7 +255,7 @@ const buyBook = async function(user_id,payload){
             }
 
             console.log('card details->',cardDetails) ;
-            let transaction = await makeTransaction(cardDetails[0],book_id,quantity,promo_percent);
+            let transaction = await makeTransaction(user_id,cardDetails[0],book_id,quantity,promo_percent);
             return transaction ;
         } else {
             return responses.getResponseWithMessage(constant.errorMessage.no_card_found,constant.codes.not_found)
@@ -266,7 +266,7 @@ const buyBook = async function(user_id,payload){
 }
 
 
-async function makeTransaction(cardDetails , book_id ,quantity,promo_percent){
+async function makeTransaction(user_id ,cardDetails , book_id ,quantity,promo_percent){
     try {
         let conn = await mysql.returnConnectionFromPool();
 
@@ -320,14 +320,49 @@ async function makeTransaction(cardDetails , book_id ,quantity,promo_percent){
                     if(amount < 50) amount = 50
                     let payment  = await createChargeStripe(conn,amount,auhtorPriceOverall,cardDetails.customer_stripe_id,authorAccountDetails[0].stripe_account,authorAccountDetails[0].currency)
                     if(payment.paid) {
-                        await mysql.commitPromisified(conn);
-                        return responses.getResponseWithMessage(constant.successMessages.booking_successfull,constant.codes.success,{});
-                    }else {
+                        sql = 'INSERT INTO order (book_id , amount , author_id , customer_id) VALUES(?,?,?,?)';
+                        params = [book_id,amount,books[0].author_id,user_id]
+                        let order = await mysql.executeTransanctionQueryPromisified(conn,sql,params);
+
+                        if(order.insertId){
+                            await mysql.commitPromisified(conn);
+                            return responses.getResponseWithMessage(constant.successMessages.booking_successfull,constant.codes.success,{});
+                        } else {
+                            await mysql.rolBackPromisified(conn);
+                            return responses.getResponseWithMessage(constant.errorMessage.transaction_failed,constant.codes.transaction_failed);
+                        }
+                       
+                    } else {
                         await mysql.rolBackPromisified(conn);
                         return responses.getResponseWithMessage(constant.errorMessage.transaction_failed,constant.codes.transaction_failed);
                     }
                 } else {
+                    let newAuthorAmount = (auhtorPriceOverall - amount)  + (0.29 * amount) ;
+                    let payment = await createChargeStripe(conn,amount,amount,cardDetails.customer_stripe_id,authorAccountDetails[0].stripe_account,authorAccountDetails[0].currency);
 
+                    if(payment.paid) {
+                        sql = 'INSERT INTO order (book_id , amount , author_id , customer_id) VALUES(?,?,?,?)';
+                        params = [book_id,amount,books[0].author_id,user_id]
+                        let order = await mysql.executeTransanctionQueryPromisified(conn,sql,params);
+
+                        if(order.insertId){
+                            await mysql.commitPromisified(conn);
+                        } else {
+                            await mysql.rolBackPromisified(conn);
+                            return responses.getResponseWithMessage(constant.errorMessage.transaction_failed,constant.codes.transaction_failed);
+                        }
+
+                        try {
+                            let transferedPayment = await createTransferStripe(newAuthorAmount,authorAccountDetails[0].stripe_account,authorAccountDetails[0].currency);
+                            if(transferedPayment) {
+
+                            } else {
+                                await insertPendingAmounts(authorAccountDetails[0].stripe_account,author_stripe_account,amount,order.insertId,);
+                            }
+                        } catch (error){
+                            return responses.getResponseWithMessage(constant.successMessages.booking_successfull,constant.codes.success,{});
+                        }
+                    }
                 }
                 
 
@@ -501,6 +536,34 @@ async function makeTransaction(cardDetails , book_id ,quantity,promo_percent){
 
         
 // }
+
+function insertPendingAmounts(author_stripe_account,amount,order_id) {
+    return new Promise((resolve,reject)=>{
+        sql = 'INSER INTO pending_amounts (author_stripe_account,amount,order_id) VALUES(?,?,?,?)' ;
+        params = [author_stripe_account,amount,order_id];
+        connection.query(sql,params,(error,result)=>{
+            if(error){
+                return reject(error);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+function createTransferStripe(amount,stripe_account,currency) {
+    return new Promise((resolve,reject)=>{
+        stripe.transfers.create({
+            amount: amount,
+            currency: currency ,
+            destination: stripe_account 
+          }, function(err, transfer) {
+               if(err){
+                   return reject(err);
+               }
+               return resolve(transfer);
+          });
+    })
+}
 
 function createChargeStripe(conn,amount,auhtorPriceOverall,customer_stripe_id,stripe_account,currency) {
     return new Promise((resolve,reject)=>{
