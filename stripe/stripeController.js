@@ -4,11 +4,11 @@ const stripeServices = require('./stripeServices');
 
 
 
-
+// Add card by using token generated at front ned
 const addCardAndCustomer =   async (req,res)=>{
     try {
-         let user_id = req.user_id ;
-        let payload = req.body ;
+         let  user_id  =  req.user_id ;
+         let  payload  =  req.body     ;
         let data = await stripeServices.addCardAndCustomer(user_id,payload);
         res.send(JSON.stringify(data));
 
@@ -18,6 +18,7 @@ const addCardAndCustomer =   async (req,res)=>{
     }
 }
 
+// Edit card details like name,address,exp date
 const editCardDetails   =  async (req,res)=>{
     try {
         let payload = req.body ;
@@ -30,6 +31,8 @@ const editCardDetails   =  async (req,res)=>{
 
     }
 }
+
+//Delete card 
 
 const deleteCard = async (req,res)=>{
     try {

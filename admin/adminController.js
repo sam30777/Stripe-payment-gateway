@@ -64,5 +64,7 @@ const bulkPayPendingAmounts = async (req,res) => {
 module.exports = {
     registerUser , 
     login ,
-    listPendingAmounts
+    listPendingAmounts ,
+    bulkPayPendingAmounts
+    
 }
