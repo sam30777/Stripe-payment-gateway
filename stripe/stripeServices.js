@@ -250,7 +250,7 @@ const buyBook = async function(user_id,payload){
             if(payload.promo_percent ){
                 promo_percent = payload.promo_percent ;
             }
-            makeTra
+            
             console.log('card details->',cardDetails) ;
             let transaction = await makeTransaction(user_id,cardDetails[0],book_id,quantity,promo_percent);
             return transaction ;
@@ -494,6 +494,31 @@ const getCardInfo = async (user_id,payload)=>{
    
 }
 
+const bulkPayPendingAmounts = async ((pending_ids)=>{
+    try {
+        let sql    = 'SELECT  pending_id , currency , author_stripe_account , amount , order_id FROM pending_amounts WHERE pending_ids IN (?)';
+        let params = [pending_ids];
+
+        let pending_amounts = await mysql.executeQueryPromisified(sql,params);
+
+        if(pending_amounts && pending_amounts.length > 0){  
+            let promiseArray = []
+            for(let i = 0 ; i <= pending_amounts.length ; i++) {
+                promiseArray.push(createTransferStripe(pending_amounts[i].amount,pending_amounts[i].author_stripe_account,pending_amounts[i].currency));
+            }
+
+            await Promise.all(promiseArray);
+            return getResponseWithMessage(constant.success.success,constant.codes.success,{});
+        }else {
+            return getResponseWithMessage(constant.errorMessage.no_pending_amount_found,constant.codes.no_pending_amount_found);
+        }
+
+
+    } catch (error){
+        throw error ;
+    }
+})
+
 
 function getStripeAccountInfo(stripe_account){
     return new Promise((resolve,reject)=>{
@@ -526,10 +551,10 @@ function getCardInfoStripe(customer_stripe_id,card_stripe_id){
     })
 }
 
-function insertPendingAmounts(author_stripe_account,amount,order_id) {
+function insertPendingAmounts(author_stripe_account,amount,order_id,currency) {
     return new Promise((resolve,reject)=>{
-        sql = 'INSER INTO pending_amounts (author_stripe_account,amount,order_id) VALUES(?,?,?,?)' ;
-        params = [author_stripe_account,amount,order_id];
+        sql = 'INSER INTO pending_amounts (author_stripe_account,amount,order_id,currency) VALUES(?,?,?,?)' ;
+        params = [author_stripe_account,amount,order_id,currency];
         connection.query(sql,params,(error,result)=>{
             if(error){
                 return reject(error);
@@ -553,6 +578,12 @@ function createTransferStripe(amount,stripe_account,currency) {
           });
     })
 }
+
+
+
+
+
+
 
 function createChargeStripe(conn,amount,auhtorPriceOverall,customer_stripe_id,stripe_account,currency) {
     return new Promise((resolve,reject)=>{
@@ -674,6 +705,7 @@ module.exports = {
     addAccount ,
     buyBook ,
     deleteAccount ,
-    getAccountInfo
+    getAccountInfo ,
+    bulkPayPendingAmounts
 }
 

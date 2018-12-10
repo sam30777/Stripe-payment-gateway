@@ -28,7 +28,8 @@ const errorMessage = {
      'out_of_stock'           : 'Books are out of stock' ,
      'payment_failed'         : 'Payment was failed' ,
      'transaction_failed'     : 'Transaction failed' ,
-     'account_could_not_be_deleted' : 'Account could not be deleted' 
+     'account_could_not_be_deleted' : 'Account could not be deleted' ,
+     'no_pending_amount_found'   : 'No pending amount is found'
     
      
   
@@ -49,8 +50,9 @@ const successMessages = {
 }
 
 const roles = {
-    user : 'user' ,
-    author : 'author' 
+    user   : 'user' ,
+    author : 'author' ,
+    admin  : 'admin'
 }
 
 const stripe = {
@@ -81,7 +83,8 @@ const codes = {
     'out_of_stock'          : 400 ,
     'payment_failed'        : 400 ,
     'transaction_failed'    : 400 ,
-    'account_deletion_failed' : 400
+    'account_deletion_failed' : 400 ,
+    'no_pending_amount_found' : 400
     
     
 }

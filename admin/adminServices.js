@@ -16,7 +16,7 @@ const registerUser = async function (payload){
             let user_name = payload.user_name ;
             let date_of_birth = new Date(payload.date_of_birth) ;
         
-            let existingUser = await checkIfUserExists(email,user_name);
+            let existingUser = await checkIfAdminExists(email,user_name);
             
             console.log('existing user->',existingUser);
 
@@ -26,7 +26,7 @@ const registerUser = async function (payload){
             
             let password = encryptDecrypt.encryptPassword(payload.password);
             console.log('password->',password);
-            let sql = 'INSERT INTO users (user_name,email,password,date_of_birth) VALUES(?,?,?,?)'
+            let sql = 'INSERT INTO admins (user_name,email,password,date_of_birth) VALUES(?,?,?,?)'
             let params = [user_name,email,password,date_of_birth] ;
 
             let insertedUser = await mysql.executeQueryPromisified(sql,params);
@@ -46,7 +46,7 @@ const registerUser = async function (payload){
 const login = async function(payload){
     try {
         let user_name = payload.user_name ;
-        let existingUser = await checkIfUserExists('',user_name);
+        let existingUser = await checkIfAmdinExists('',user_name);
 
         console.log("use->",existingUser);
 
@@ -69,7 +69,7 @@ const login = async function(payload){
         let access_token =  await token.getAccessToken(authObject);
         console.log('access_token->',access_token);
 
-        let sql = 'UPDATE users SET access_token = ? WHERE user_id = ? ' ;
+        let sql = 'UPDATE admins SET access_token = ? WHERE user_id = ? ' ;
 
         let params = [access_token,existingUser.user_id];
 
@@ -94,10 +94,10 @@ const login = async function(payload){
 }
 
 
-const checkIfUserExists = async function(email,userName){    
+const checkIfAdminExists = async function(email,userName){    
     return new Promise((resolve,reject)=>{
 
-    let sql = 'SELECT  user_id , user_name , password , date_of_birth , email from users WHERE email =? OR user_name = ? ' ;
+    let sql = 'SELECT  admin_id , user_name , password , date_of_birth , email from admins WHERE email =? OR user_name = ? ' ;
     let params = [email,userName];
 
     connection .query(sql,params,(error,user)=>{
@@ -115,11 +115,32 @@ const checkIfUserExists = async function(email,userName){
 
 } 
 
+const listPendingAmounts = async function(){
+    try {
+        author_stripe_account,amount,order_id
+        let sql = 'SELECT  pending_id , amount , order_id FROM pending_amounts' ;
+        
+        let pendingAmounts  = await mysql.executeQueryPromisified(sql,[]);
+
+        if(pendingAmounts && pendingAmounts.length > 0) {
+                return responses.getResponseWithMessage(constant.successMessages.success,constant.codes.success);
+        } else {
+            return responses.getResponseWithMessage(constant.errorMessage.no_pending_amount_found,constant.codes.no_pending_amount_found);
+        }
+        
+    } catch (error){
+        throw error ;
+    }
+}
+
+
+
 
 
 
 module.exports = {
     registerUser ,
-    login 
+    login  ,
+    listPendingAmounts
 
 }

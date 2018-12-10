@@ -82,6 +82,22 @@ const buyBook = function(req,res,next){
 }
 
 
+const bulkPayPendingAmounts = function(req,res,next){
+    const schema = Joi.object().keys({
+     pending_ids = Joi.array().min(1).items(Joi.number().required).required
+
+    })
+
+    let validate = Joi.validate(req.body, schema);
+    console.log('validate->',validate)
+    if(validate.error){
+        responses.sendError(res,constant.errorMessage.parameter_missing,constant.codes.parameter_missing);
+    }
+    else {
+        next()
+    }
+}
+
 
 const addAccount = function(req,res,next){
    
@@ -118,5 +134,6 @@ module.exports = {
     editCardDetails ,
     deleteCard ,
     addAccount ,
-    buyBook
+    buyBook ,
+    bulkPayPendingAmounts
 }

@@ -75,7 +75,7 @@ const deleteAccount = async (req,res) => {
         
         let author_id = req.author_id ;
         let data = await stripeServices.deleteAccount(author_id);
-        return data ; 
+        res.send(JSON.stringify(data));
     } catch(error){
         res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
     }
@@ -85,7 +85,7 @@ const getCardInfo = async (req,res) => {
     try {
         let user_id = req.user_id ;
         let data = await stripeServices.getCardInfo(user_id);
-        return data ; 
+        res.send(JSON.stringify(data));
     } catch(error){
         res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
     }
@@ -96,12 +96,21 @@ const getAccountInfo = async (req,res) => {
         
         let author_id = req.author_id ;
         let data = await stripeServices.getAccountInfo(author_id);
-        return data ; 
+        res.send(JSON.stringify(data));
     } catch(error){
         res.send(JSON.stringify(responses.getResponseWithMessage(constant.errorMessage.something_went_wrong,constant.codes.something_went_wrong)));
     }
 }
 
+const bulkPayPendingAmounts = async ((req,res)=>{
+    try {
+        let pending_ids = req.body.pending_ids ;
+        let data        = await stripeServices.bulkPayPendingAmounts(pending_ids);
+        res.send(JSON.stringify(data));
+    } catch(error){
+        throw error ;
+    }
+})
 
 
 
@@ -113,5 +122,6 @@ module.exports = {
     addCardAndCustomer ,
     getAccountInfo ,
     deleteAccount ,
-    getCardInfo
+    getCardInfo ,
+    bulkPayPendingAmounts
 }

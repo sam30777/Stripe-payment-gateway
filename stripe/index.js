@@ -11,3 +11,4 @@ app.post('/user/buyBook',stripeValidator.buyBook , token.verifyAccessToken , str
 app.post('author/deleteAccount',token.verfiyAuthorAccessToken,stripeController.deleteAccount)
 app.get('/author/getAccountInfo',toke.verfiyAuthorAccessToken,stripeController.getAccountInfo);
 app.get('/user/getCardInfo',token.verifyAccessToken,stripeController.getCardInfo);
+app.post('admin/bulkPayPendingAmounts',token.verifyAdminAccessToken,stripeValidator.bulkPayPendingAmounts,stripeController.bulkPayPendingAmounts);
