@@ -27,7 +27,9 @@ const errorMessage = {
      'no_book_found'           : 'No book found' ,
      'out_of_stock'           : 'Books are out of stock' ,
      'payment_failed'         : 'Payment was failed' ,
-     'transaction_failed'     : 'Transaction failed'
+     'transaction_failed'     : 'Transaction failed' ,
+     'account_could_not_be_deleted' : 'Account could not be deleted' 
+    
      
   
 }
@@ -41,7 +43,9 @@ const successMessages = {
     'author_registered_successfully' : 'Author registered successfully' ,
     'book_added_successfully' : 'Book added successfully' ,
     'account_details_added'  : 'Account details added successfully' ,
-    'booking_successfull'    : 'Booking successfull'
+    'booking_successfull'    : 'Booking successfull' ,
+    'account_deleted'        : 'Account deleted' ,
+    'success'                : 'Success'
 }
 
 const roles = {
@@ -76,7 +80,8 @@ const codes = {
     'unable_to_add_account' : 400 ,
     'out_of_stock'          : 400 ,
     'payment_failed'        : 400 ,
-    'transaction_failed'    : 400
+    'transaction_failed'    : 400 ,
+    'account_deletion_failed' : 400
     
     
 }

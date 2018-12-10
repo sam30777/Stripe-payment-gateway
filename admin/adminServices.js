@@ -1,12 +1,12 @@
-const log = require('log');
 
-const constant = require('./../common/constant');
 
-const responses = require('./../common/responses');
+const constant       = require('../common/constant');
 
-const encryptDecrypt = require('./../common/encryptDectypt');
-const mysql          = require('./../database/mysql');
-const token          = require('./../common/jwt');
+const responses      = require('../common/responses');
+
+const encryptDecrypt = require('../common/encryptDectypt');
+const mysql          = require('../database/mysql');
+const token          = require('../common/jwt');
 
 
 const registerUser = async function (payload){

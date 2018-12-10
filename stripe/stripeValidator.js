@@ -1,7 +1,7 @@
 
 const Joi = require('joi');
-const responses = require('./../common/responses');
-const constant = require('./../common/constant');
+const responses = require('../common/responses');
+const constant = require('../common/constant');
 
 const addCardAndCustomer = function (req,res,next) {
     console.log("user name==>",req.body);
