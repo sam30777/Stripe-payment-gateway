@@ -707,5 +707,6 @@ module.exports = {
     buyBook,
     deleteAccount,
     getAccountInfo,
-    bulkPayPendingAmounts
+    bulkPayPendingAmounts ,
+    getCardInfo
 }
