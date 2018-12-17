@@ -561,7 +561,7 @@ function insertPendingAmounts(author_stripe_account, amount, order_id, currency)
 function createTransferStripe(amount, stripe_account, currency) {
     return new Promise((resolve, reject) => {
         stripe.transfers.create({
-            amount: amount,
+            amount: Math.round(amount),
             currency: currency,
             destination: stripe_account
         }, function (err, transfer) {
@@ -582,7 +582,7 @@ function createTransferStripe(amount, stripe_account, currency) {
 function createChargeStripe(conn, amount, auhtorPriceOverall, customer_stripe_id, stripe_account, currency) {
     return new Promise((resolve, reject) => {
         let stripeObj = {
-            amount: amount,
+            amount: Math.round(amount),
             currency: currency,
             customer: customer_stripe_id
         };
